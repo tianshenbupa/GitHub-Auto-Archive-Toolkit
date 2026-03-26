@@ -28,7 +28,7 @@
 **快速配置环境 (请以管理员权限运行 PowerShell):**
 ```powershell
 winget install --id Git.Git -e; winget install --id GitHub.cli -e
-
+```
 
 
 
