@@ -72,5 +72,5 @@ winget install --id Git.Git -e; winget install --id GitHub.cli -e
 
 💡 **Note**: After installation, restart your terminal and run `gh auth login` to authenticate.
 
-```
+
 
