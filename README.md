@@ -1,6 +1,6 @@
 
 
-````markdown
+
 # 🚀 GitHub 仓库全量自动备份工具 (GAT)
 
 [English](#-english-description) | [中文说明](#-中文说明)
@@ -36,7 +36,7 @@ winget install --id Git.Git -e; winget install --id GitHub.cli -e
 
 💡 **注意**: 安装完成后，请重启终端并运行 `gh auth login` 完成身份验证。
 
------
+
 
 \<a name="english"\>\</a\>
 
