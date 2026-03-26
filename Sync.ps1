@@ -1,3 +1,24 @@
+<#
+.SYNOPSIS
+    GitHub Repository Auto-Archive Toolkit (GAT)
+
+.DESCRIPTION
+    A lightweight automation tool designed to clone all accessible repositories 
+    (including private ones) from the current authenticated GitHub user and 
+    archive them into a timestamped ZIP file.
+
+.PARAMETER None
+    This script identifies the user via GitHub CLI (gh) automatically.
+
+.EXAMPLE
+    .\Run_GitHub_AutoBackup.bat
+
+.NOTES
+    Version: 1.1
+    License: MIT License
+    Requires: Git, GitHub CLI (gh)
+#>
+
 $ErrorActionPreference = "Stop"
 try {
     Write-Host "--- Checking Environment ---" -ForegroundColor Cyan
@@ -25,7 +46,8 @@ try {
         New-Item -ItemType Directory -Path $archivePath | Out-Null 
     }
     
-    $zipName = "GITHUB_$date.zip"
+    # --- 文件名包含用户名 ---
+    $zipName = "GITHUB_$($githubUser)_$date.zip"
     $tempDir = Join-Path $PSScriptRoot "gh_temp"
     $zipPath = Join-Path $archivePath $zipName 
     $logFile = Join-Path $tempDir "Backup_Log.md"
@@ -63,17 +85,21 @@ try {
             gh repo clone $name "$tempDir/$name" -- --depth 1 --quiet
             $endTime = Get-Date
             $duration = ($endTime - $startTime).TotalSeconds.ToString("F2") + "s"
-            $logContent += "`n| $name | ✅ Success | $duration |"
+            # 兼容性修改：使用文本状态标识
+            $logContent += "`n| $name | [OK] Success | $duration |"
             $successCount++
         } catch {
-            $logContent += "`n| $name | ❌ Failed | - |"
+            $logContent += "`n| $name | [!!] Failed | - |"
             $failCount++
         }
     }
 
     # 7. 统计总结并写入日志
     $logContent += "`n`n## Summary`n- **Successfully Backed Up:** $successCount`n- **Failed:** $failCount"
-    $logContent | Out-File -FilePath $logFile -Encoding utf8
+    
+    # 关键修复：使用 .NET 方法强制以无 BOM 的 UTF8 编码写入文件
+    $Utf8NoBom = New-Object System.Text.UTF8Encoding $False
+    [System.IO.File]::WriteAllText($logFile, $logContent, $Utf8NoBom)
 
     # 8. 创建压缩包并清理
     if (Test-Path $zipPath) { Remove-Item $zipPath }
@@ -83,10 +109,10 @@ try {
 
     # --- 成功退出逻辑 ---
     Write-Host "`n==================================================" -ForegroundColor Cyan
-    Write-Host "   BACKUP SUCCESSFUL! " -ForegroundColor Green
-    Write-Host "   User: @$githubUser"
-    Write-Host "   Archive: $archiveDirName\$zipName"
-    Write-Host "   This window will close automatically in 5 seconds."
+    Write-Host "    BACKUP SUCCESSFUL! " -ForegroundColor Green
+    Write-Host "    User: @$githubUser"
+    Write-Host "    Archive: $archiveDirName\$zipName"
+    Write-Host "    This window will close automatically in 5 seconds."
     Write-Host "==================================================" -ForegroundColor Cyan
     
     Start-Sleep -Seconds 5
